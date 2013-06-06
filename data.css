@@ -1,0 +1,12 @@
+/*================Data plot area================*/
+#data {
+    width: 900px;
+    position:absolute;
+    top:1000px;
+    left:0px;
+    margin: 0px 0px 0px 0px;
+ 
+    padding: 0px 0px 0px 0px;
+    background-color:#000000;
+    color:#FFFFFF;
+}
