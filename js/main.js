@@ -13,6 +13,8 @@ function preload(){
 	     './img/chara3.png',
 	     './img/chara4.png',
 	     './img/chara5.png',
+	     './img/chara6.png',
+	     './img/chara7.png',
 	     './img/ColorTile.png'
 	    ];
      
@@ -21,29 +23,47 @@ function preload(){
      game.start();
 }
 
-var MoveFlag=0;
+
 
 function initialize(){
     
     scene = new Scene();
-    scene.backgroundColor = '#f68845';
+    scene.backgroundColor = '#ffffff';
     game.pushScene(scene);
 
-    
+    var map = new Map(32,32);
+    map.image=game.assets['./img/ColorTile.png'];
+    map.loadData([
+		     [1,0,0,0,0,1],
+		     [0,1,2,3,4,0],
+		     [0,2,3,4,5,0],
+		     [0,5,4,7,6,0],
+		     [0,5,3,2,1,0],
+		     [1,0,0,0,0,1]
+		 ]);
+    scene.addChild(map);
+
+
     player = new Array();
     var Len=5;
     
     for(var i=0; i<Len; i++){
 	player[i] = new Sprite(32,32);
-	player[i].image = game.assets['./img/ColorTile.png'];
+	player[i].image = game.assets['./img/chara5.png'];
 	player[i].frame= i%8;
 	player[i].x=i*32;
 	player[i].y=i*32;
 	player[i].addEventListener(Event.TOUCH_START,INTER_RECT);
-	player[i].addEventListener(Event.TOUCH_MOVE,function(e){
-				if(MoveFlag){this.x=e.x-dx;this.y=e.y-dy;}
-			    });
+	/*
+	 * player[i].addEventListener(Event.TOUCH_MOVE,MOVE);
+	 * player[i].addEventListener(Event.TOUCH_END,STOP_MOVE);
+	 * player[i].addEventListener(Event.ENTER_FRAME,DRAW_MOVING);
+	 */
+	player[i].addEventListener(Event.TOUCH_MOVE,TRACE_TRAJECTORY);
+	player[i].addEventListener(Event.TOUCH_END,END_TRAJECTORY);
+	player[i].addEventListener(Event.ENTER_FRAME,DRAW_TRAJECTORY);
 
+ 
 	scene.addChild(player[i]);
     }
     main();
@@ -54,18 +74,3 @@ function main(){
    
 }
 
-
-function INTER_RECT(e){
-    if((this.x -16<= e.x) &&(e.x<= this.x + 40) &&
-       (this.y -16<= e.y) &&(e.y<= this.y + 40) 
-      ){
-	  MoveFlag=1;
-	  dx = e.x-this.x;
-	  dy = e.y-this.y;
-      }
-    else {
-	MoveFlag=0;
-	dx=0;
-	dy=0;
-    }
-}
