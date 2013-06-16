@@ -1,9 +1,9 @@
 /* CLASS CHARACTER
  * This has members : sprite       :: sprite object from EnchantJS
- *                  : selectedFlag :: Flag whether is selected or not
- *                  : can_move     :: Flag whether this object can move or not
- *                  :  
- *                  :  
+ *                  : selectedFlag :: Flag:whether is selected or not
+ *                  : can_move     :: Flag:whether this object can move or not
+ *                  : collisionFlag:: Flag:if this object is collision to others
+ *                  : haveFlag     :: Flag:the object has a Flag or not
  * 
  */
 function _2DimPoint()
@@ -52,8 +52,8 @@ var CHARACTER = enchant.Class.create(enchant.Sprite,
  * 
  */
 function IS_SELECTED(e){
-      if((this.x -16<= e.x) &&(e.x<= this.x + 40) &&
-       (this.y -16<= e.y) &&(e.y<= this.y + 40) 
+      if((this.x <= e.x) &&(e.x<= this.x + this.width) &&
+       (this.y <= e.y) &&(e.y<= this.y + this.height) 
       ){
 	  this.selectedFlag=1;
 	  this.can_move=0;
@@ -81,11 +81,12 @@ function IS_SELECTED(e){
 var radius = 30;
 function TRACE_TRAJECTORY(e){
     /* Out of main window*/
-    if(e.x<0 || game.width< e.x || e.y<0 || game.height < e.y ){
+    if(e.x<0 || game.width < e.x || e.y<0 || game.height < e.y ){
 	this.can_move=1;
 	this.index =0;
 	this.opacity=0.8;
     }else{
+	/* Within the main window*/
 	if(this.selectedFlag  && this.can_move == 0){
 	    var text="Trajectory dx="+this.diff.x+",dy="+this.diff.y+
 		"length="+this.trajectory.length+"   <br>";
@@ -112,6 +113,11 @@ function TRACE_TRAJECTORY(e){
     }
 }
 
+
+
+/* Driven by End of clicking or dragging
+ * 
+ */
 var direction;
 function END_TRAJECTORY(e){
     this.can_move=1;
@@ -182,7 +188,7 @@ function DRAW_TRAJECTORY(e){
 		/* update point to avoid collision*/
 		if(this.index +1< this.trajectory.length)
 		{
-		if(this.trajectory[this.index]['x'] == this.trajectory[this.index+1]['x']) this.can_move =0;
+		    if(this.trajectory[this.index]['x'] == this.trajectory[this.index+1]['x']) this.can_move =0;
 		this.trajectory[this.index]['y'] = this.y;
 		this.trajectory[this.index]['x'] = this.trajectory[this.index+1]['x'];
 		}
@@ -194,7 +200,8 @@ function DRAW_TRAJECTORY(e){
 	    
 	    this.y += dy;
 	    // update image frame 
-	    if( ( Math.round(Math.abs(this.y - this.trajectory[this.index]['y'])) %5 ==0) )DrawImageFrame(0,dy,this);
+	    if( ( Math.round(Math.abs(this.y - this.trajectory[this.index]['y'])) %5 ==0) )
+		DrawImageFrame(0,dy,this);
 	}
 
 	if( ( Math.round(Math.abs(this.x - this.trajectory[this.index]['x'])) <= 1)&& 
@@ -214,23 +221,34 @@ function DRAW_TRAJECTORY(e){
 	    this.index=0;
 	}
     } 
+}
 
 
-
-    if( map.checkTile(this.x+this.width/2,this.y+this.height/2) == 3)
+function CHECK_MAPTILE(){
+    /* set the blue tile(mapdata =  3) enable to get flags
+     * set the red tile(mapdata = 2) as owned Aera
+     */
+    
+    
+    if( map.checkTile(this.x+this.width/2,this.y+this.height/2) == 2)
     {
 	this.haveFlag=1;
     }
 
-    if(map.checkTile(this.x+this.width/2,this.y+this.height/2) == 2 && this.haveFlag)
-	{
-	    alert("Take the Flag !!");
-	    this.haveFlag=0;
-	}
-
+    if(map.checkTile(this.x+this.width/2,this.y+this.height/2) == 3 && this.haveFlag)
+    {
+	alert("Take the Flag !!");
+	this.haveFlag=0;
+    }
 }
 
-
+/* DrawImageFrame(dx,dy,obj)
+ * 
+ * dx : amount of moving toward x-axis
+ * dy : amount of moving toward y-axis
+ * obj: this object
+ * 
+ */
 function DrawImageFrame(dx,dy,obj){
     if( dx <0 && dy==0)//moving left
     {
@@ -309,25 +327,25 @@ function DEBUG(){
 	"frame: "+player[0].frame+"  :  "+player[1].frame+"  :  "+player[2].frame+" <br> "+
 	"selectedFlag: "+player[0].selectedFlag+"  :  "+player[1].selectedFlag+"  :  "+player[2].selectedFlag+" <br> "+
 	"can_move ?: "+player[0].can_move+"  :  "+player[1].can_move+"  :  "+player[2].can_move+" <br> "+
-"Collision ?: "+player[0].collisionFlag+"  :  "+player[1].collisionFlag+"  :  "+player[2].collisionFlag+" <br> "+
-"Have Flag?: "+player[0].haveFlag+"  :  "+player[1].haveFlag+"  :  "+player[2].haveFlag+" <br> "+
+	"Collision ?: "+player[0].collisionFlag+"  :  "+player[1].collisionFlag+"  :  "+player[2].collisionFlag+" <br> "+
+	"Have Flag?: "+player[0].haveFlag+"  :  "+player[1].haveFlag+"  :  "+player[2].haveFlag+" <br> "+
 	"---------------------------------------------------------<br>"+
 	"length: "+player[0].trajectory.length+"  :  "+player[1].trajectory.length+"  :  "+player[2].trajectory.length+" <br> "+
 	"index: "+player[0].index+"  :  "+player[1].index+"  :  "+player[2].index+" <br> ";
-
-
-
+    
+    
+    
     var text="(x,y,dist)=";
     var len = Math.max(player[0].trajectory.length,player[1].trajectory.length,player[2].trajectory.length);
-	for(var i=0; i<len; i++){
-	    if(0< player[0].trajectory.length && i < player[0].trajectory.length )
-		text += "("+player[0].trajectory[i]['x']+","+player[0].trajectory[i]['y']+","+player[0].trajectory[i]['dist']+")";
-	    if(0<player[1].trajectory.length &&i<player[1].trajectory.length)
-		text += "("+player[1].trajectory[i]['x']+","+player[1].trajectory[i]['y']+","+player[1].trajectory[i]['dist']+")";
-	    if(0<player[2].trajectory.length && i<player[2].trajectory.length)
-		text += "("+player[2].trajectory[i]['x']+","+player[2].trajectory[i]['y']+","+player[2].trajectory[i]['dist']+")";
-	    text+= "<br>";
-	}
-    	document.getElementById("data").innerHTML=text;
-
+    for(var i=0; i<len; i++){
+	if(0< player[0].trajectory.length && i < player[0].trajectory.length )
+	    text += "("+player[0].trajectory[i]['x']+","+player[0].trajectory[i]['y']+","+player[0].trajectory[i]['dist']+")";
+	if(0<player[1].trajectory.length &&i<player[1].trajectory.length)
+	    text += "("+player[1].trajectory[i]['x']+","+player[1].trajectory[i]['y']+","+player[1].trajectory[i]['dist']+")";
+	if(0<player[2].trajectory.length && i<player[2].trajectory.length)
+	    text += "("+player[2].trajectory[i]['x']+","+player[2].trajectory[i]['y']+","+player[2].trajectory[i]['dist']+")";
+	text+= "<br>";
+    }
+    document.getElementById("data").innerHTML=text;
+    
 }
