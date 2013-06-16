@@ -5,13 +5,13 @@ var MoveFlag=0,selected=0;
 var CheckPoint = new Array();
 
 function INTER_RECT(e){
+//    CheckPoint.length=0;
     if((this.x -16<= e.x) &&(e.x<= this.x + 40) &&
        (this.y -16<= e.y) &&(e.y<= this.y + 40) 
       ){
 	  selected=1;
 	  dx = Math.floor(e.x)-this.x;
 	  dy = Math.floor(e.y)-this.y;
-
 	  //CheckPoint = (this.x,this.y),(CP1.x,CP1.y),(CP2.x,CP2.y), ... ,(dist.x,dist.y) 
 	  CheckPoint[0] = new Array();
 	  CheckPoint[0]['x'] = Math.round(e.x)-dx;
