@@ -30,6 +30,7 @@ var CHARACTER = enchant.Class.create(enchant.Sprite,
        this.selectedFlag=0;
        this.can_move=0;
        this.collisionFlag=0;
+       this.haveFlag=0;
        /* To remember Trajectory*/
        index = 0;
        this.trajectory = new Array();
@@ -56,6 +57,7 @@ function IS_SELECTED(e){
       ){
 	  this.selectedFlag=1;
 	  this.can_move=0;
+	  this.collision =0;
 	  this.diff.x = Math.round(e.x) - this.x;
 	  this.diff.y = Math.round(e.y) - this.y;
 
@@ -78,31 +80,37 @@ function IS_SELECTED(e){
 
 var radius = 30;
 function TRACE_TRAJECTORY(e){
-    if(this.selectedFlag  && this.can_move == 0){
-	var text="Trajectory dx="+this.diff.x+",dy="+this.diff.y+
-	    "length="+this.trajectory.length+"   <br>";
-	for(var i=0; i<this.trajectory.length; i++){
-	    text += "(x,y,dist)=("+this.trajectory[i]['x']+","+
-		this.trajectory[i]['y']+","+
-    		this.trajectory[i]['dist']+")<br>";
+    /* Out of main window*/
+    if(e.x<0 || game.width< e.x || e.y<0 || game.height < e.y ){
+	this.can_move=1;
+	this.index =0;
+	this.opacity=0.8;
+    }else{
+	if(this.selectedFlag  && this.can_move == 0){
+	    var text="Trajectory dx="+this.diff.x+",dy="+this.diff.y+
+		"length="+this.trajectory.length+"   <br>";
+	    for(var i=0; i<this.trajectory.length; i++){
+		text += "(x,y,dist)=("+this.trajectory[i]['x']+","+
+		    this.trajectory[i]['y']+","+
+    		    this.trajectory[i]['dist']+")<br>";
+	    }
+    	    document.getElementById("data").innerHTML=text;
+	    
+	    var E_x = Math.round(e.x)-this.diff.x,
+            E_y = Math.round(e.y)-this.diff.y;
+	    var dist = Math.sqrt( Math.pow(this.trajectory[this.index]['x'] - E_x ,2)
+				  +Math.pow(this.trajectory[this.index]['y'] -E_y ,2) ); 
+                                //       ________________________________
+	    if( dist > radius){// if ^/(prev.x-e.x)^2 +(prev.y - e.y)^2 > radius
+		this.index++;
+		this.trajectory[this.index] = new Array();
+		this.trajectory[this.index]['x'] = Math.round(e.x)-this.diff.x;
+		this.trajectory[this.index]['y'] = Math.round(e.y)-this.diff.y;
+		this.trajectory[this.index]['dist']=Math.round(dist);
+	    }    
 	}
-//    	document.getElementById("data").innerHTML=text;
-
-	var E_x = Math.round(e.x)-this.diff.x,
-        E_y = Math.round(e.y)-this.diff.y;
-	var dist = Math.sqrt( Math.pow(this.trajectory[this.index]['x'] - E_x ,2)
-			     +Math.pow(this.trajectory[this.index]['y'] -E_y ,2) ); 
-                           //       ________________________________
-	if( dist > radius){// if ^/(prev.x-e.x)^2 +(prev.y - e.y)^2 > radius
-	    this.index++;
-	    this.trajectory[this.index] = new Array();
-	    this.trajectory[this.index]['x'] = Math.round(e.x)-this.diff.x;
-	    this.trajectory[this.index]['y'] = Math.round(e.y)-this.diff.y;
-	    this.trajectory[this.index]['dist']=Math.round(dist);
-	}    
     }
 }
-
 
 var direction;
 function END_TRAJECTORY(e){
@@ -145,7 +153,18 @@ function DRAW_TRAJECTORY(e){
 	       map.hitTest(this.x+dx,this.y+this.height-1) || map.hitTest(this.x+dx+this.width-1,this.y+this.height-1) || CHECK_COLLISION(dx,dy,this))
 	    {//will be collision
 	    	dx =0;
-	    	this.can_move=0;
+	    	//this.can_move=0;
+		/* update point to avoid collision*/
+		if(this.index +1< this.trajectory.length)
+		{
+		if(this.trajectory[this.index]['y'] == this.trajectory[this.index+1]['y']) this.can_move =0;
+		this.trajectory[this.index]['x'] = this.x;
+		this.trajectory[this.index]['y'] = this.trajectory[this.index+1]['y'];
+		}
+		else
+		{
+		    this.can_move =0;
+		}
 	    }
 		this.x += dx;
 	    // update image frame 
@@ -159,7 +178,18 @@ function DRAW_TRAJECTORY(e){
 	       map.hitTest(this.x,this.y+dy+this.height-1)||map.hitTest(this.x+this.width-1,this.y+dy+this.height-1) || CHECK_COLLISION(dx,dy,this))
 	    {//will be collision
 	    	dy =0;
-	    	this.can_move=0;
+	    	//this.can_move=0;
+		/* update point to avoid collision*/
+		if(this.index +1< this.trajectory.length)
+		{
+		if(this.trajectory[this.index]['x'] == this.trajectory[this.index+1]['x']) this.can_move =0;
+		this.trajectory[this.index]['y'] = this.y;
+		this.trajectory[this.index]['x'] = this.trajectory[this.index+1]['x'];
+		}
+		else
+		{
+		    this.can_move =0;
+		}
 	    }
 	    
 	    this.y += dy;
@@ -183,7 +213,21 @@ function DRAW_TRAJECTORY(e){
 	    this.trajectory.length =0;
 	    this.index=0;
 	}
-    }    
+    } 
+
+
+
+    if( map.checkTile(this.x+this.width/2,this.y+this.height/2) == 3)
+    {
+	this.haveFlag=1;
+    }
+
+    if(map.checkTile(this.x+this.width/2,this.y+this.height/2) == 2 && this.haveFlag)
+	{
+	    alert("Take the Flag !!");
+	    this.haveFlag=0;
+	}
+
 }
 
 
@@ -266,7 +310,24 @@ function DEBUG(){
 	"selectedFlag: "+player[0].selectedFlag+"  :  "+player[1].selectedFlag+"  :  "+player[2].selectedFlag+" <br> "+
 	"can_move ?: "+player[0].can_move+"  :  "+player[1].can_move+"  :  "+player[2].can_move+" <br> "+
 "Collision ?: "+player[0].collisionFlag+"  :  "+player[1].collisionFlag+"  :  "+player[2].collisionFlag+" <br> "+
+"Have Flag?: "+player[0].haveFlag+"  :  "+player[1].haveFlag+"  :  "+player[2].haveFlag+" <br> "+
 	"---------------------------------------------------------<br>"+
 	"length: "+player[0].trajectory.length+"  :  "+player[1].trajectory.length+"  :  "+player[2].trajectory.length+" <br> "+
 	"index: "+player[0].index+"  :  "+player[1].index+"  :  "+player[2].index+" <br> ";
+
+
+
+    var text="(x,y,dist)=";
+    var len = Math.max(player[0].trajectory.length,player[1].trajectory.length,player[2].trajectory.length);
+	for(var i=0; i<len; i++){
+	    if(0< player[0].trajectory.length && i < player[0].trajectory.length )
+		text += "("+player[0].trajectory[i]['x']+","+player[0].trajectory[i]['y']+","+player[0].trajectory[i]['dist']+")";
+	    if(0<player[1].trajectory.length &&i<player[1].trajectory.length)
+		text += "("+player[1].trajectory[i]['x']+","+player[1].trajectory[i]['y']+","+player[1].trajectory[i]['dist']+")";
+	    if(0<player[2].trajectory.length && i<player[2].trajectory.length)
+		text += "("+player[2].trajectory[i]['x']+","+player[2].trajectory[i]['y']+","+player[2].trajectory[i]['dist']+")";
+	    text+= "<br>";
+	}
+    	document.getElementById("data").innerHTML=text;
+
 }

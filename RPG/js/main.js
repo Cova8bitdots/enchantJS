@@ -36,13 +36,13 @@ function initialize(){
     map = new Map(32,32);
     map.image=game.assets['./img/ColorTile.png'];
     var BackGroundMap = [
-		     [1,1,1,1,1,1],
-		     [1,1,0,1,1,1],
-		     [1,1,1,1,0,1],
-		     [1,1,1,1,1,1],
-		     [1,1,0,1,1,1],
-		     [1,1,1,1,0,1],
-		     [3,3,3,3,3,3]
+		     [2,1,1,1,1,1,1,0],
+		     [1,1,0,1,1,1,1,1],
+		     [1,1,1,1,0,1,1,0],
+		     [1,1,1,1,1,0,1,1],
+		     [1,1,0,1,1,1,1,1],
+		     [1,1,1,1,0,1,1,1],
+		     [0,1,1,1,1,1,1,3]
     ];
     map.loadData(BackGroundMap);
 
@@ -50,7 +50,7 @@ function initialize(){
     for(var j=0; j<BackGroundMap.length; j++){
 	CollisionMap[j] = new Array(BackGroundMap[j].length);
 	for(var i =0; i<BackGroundMap[j].length; i++)
-	    CollisionMap[j][i] = BackGroundMap[j][i] % 2 ==1? 0 :1;
+	    CollisionMap[j][i] = BackGroundMap[j][i] ==  0  ? 1 :0;
     }
     
     map.collisionData = CollisionMap;
@@ -66,7 +66,7 @@ function initialize(){
 	/* CHARACTER( x, y, image, frame)*/
 	if(i==0)player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/chara7.png'],i%8);
 	else if(i==1)player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/chara5.png'],i%8);
-	else player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/ColorTile.png'],i%8);
+	else player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/chara7.png'],i%8);
 	player[i].addEventListener(Event.TOUCH_START,IS_SELECTED);
 	player[i].addEventListener(Event.TOUCH_MOVE,TRACE_TRAJECTORY);
 	player[i].addEventListener(Event.TOUCH_END,END_TRAJECTORY);
