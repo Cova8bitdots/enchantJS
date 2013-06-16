@@ -86,7 +86,7 @@ function TRACE_TRAJECTORY(e){
 		this.trajectory[i]['y']+","+
     		this.trajectory[i]['dist']+")<br>";
 	}
-    	document.getElementById("data").innerHTML=text;
+//    	document.getElementById("data").innerHTML=text;
 
 	var E_x = Math.round(e.x)-this.diff.x,
         E_y = Math.round(e.y)-this.diff.y;
@@ -142,7 +142,7 @@ function DRAW_TRAJECTORY(e){
 		this.trajectory[this.index]['x']-this.x ==0 ? 0:
 		1;
 	    if(map.hitTest(this.x+dx,this.y)  || map.hitTest(this.x+dx+this.width-1,this.y)||
-	       map.hitTest(this.x+dx,this.y+this.height-1) || map.hitTest(this.x+dx+this.width-1,this.y+this.height-1))
+	       map.hitTest(this.x+dx,this.y+this.height-1) || map.hitTest(this.x+dx+this.width-1,this.y+this.height-1) || CHECK_COLLISION(dx,dy,this))
 	    {//will be collision
 	    	dx =0;
 	    	this.can_move=0;
@@ -156,7 +156,7 @@ function DRAW_TRAJECTORY(e){
 		: 1;
 
 	    if(map.hitTest(this.x,this.y+dy) || map.hitTest(this.x+this.width-1,this.y+dy) ||
-	       map.hitTest(this.x,this.y+dy+this.height-1)||map.hitTest(this.x+this.width-1,this.y+dy+this.height-1) )
+	       map.hitTest(this.x,this.y+dy+this.height-1)||map.hitTest(this.x+this.width-1,this.y+dy+this.height-1) || CHECK_COLLISION(dx,dy,this))
 	    {//will be collision
 	    	dy =0;
 	    	this.can_move=0;
@@ -172,7 +172,7 @@ function DRAW_TRAJECTORY(e){
 	  {
 	    this.index++; 
 	  }
-	if(this.index >= this.trajectory.length || CHECK_COLLISION(this) || (this.can_move==0) )
+	if(this.index >= this.trajectory.length || (this.can_move==0) )
 	{//Object arrived at distination ,thus Moving ended.
 	    this.frame =  this.frame%3==0? this.frame+1
 		:this.frame %3 == 2 ? this.frame-1
@@ -221,25 +221,25 @@ function DrawImageFrame(dx,dy,obj){
 
 
 var COLLISION_DISTANCE = 32;//*Math.sqrt(2);
-function CHECK_COLLISION(obj){
-    if(obj.trajectory.length < 0 ) return false;
-    var dx = obj.trajectory[this.index]['x']-obj.x <0 ? -1:1,
-    dy= obj.trajectory[this.index]['y']-obj.y <0 ? -1:1;
+function CHECK_COLLISION(dx,dy,obj){
+    obj.x += dx;
+    obj.y += dy;
+
     for(var i=0; i<player.length; i++)
     {
 	var others = player[i];
 	if(obj == others)continue;
 	/*check collision, if true, stop moving*/
-	//if( others.intersect(obj)  )
-	if( others.within(obj,COLLISION_DISTANCE)  )
+	if( others.intersect(obj)  )
+	//if( others.within(obj,COLLISION_DISTANCE)  )
 	{
-	    alert("COLLISION");
 	    obj.collisionFlag=1;
 	    obj.x -= dx; obj.y -=  dy;
 	    return true;
 	}
     }
-    this.collision=0;
+    obj.x -= dx; obj.y -=  dy;
+    this.collisionFlag=0;
     return false;
 }
 
@@ -269,27 +269,4 @@ function DEBUG(){
 	"---------------------------------------------------------<br>"+
 	"length: "+player[0].trajectory.length+"  :  "+player[1].trajectory.length+"  :  "+player[2].trajectory.length+" <br> "+
 	"index: "+player[0].index+"  :  "+player[1].index+"  :  "+player[2].index+" <br> ";
-
-    document.getElementById("status").innerHTML += "<br>---------------------------------------------------------<br>map<br>";
-
-    var text="";
-    for(var j=0; j<map.length; j++){
-    	text += "<br>";
-    	for(var i=0; i<map[0].length; i++)
-    	    text += map[j][i].frame+",";
-    }
-    document.getElementById("status").innerHTML += text;
-
-
-    document.getElementById("status").innerHTML += "<br>---------------------------------------------------------<br>collision map<br>";
-    text="";
-    for(var j=0; j<map.length; j++){
-	text += "<br>";
-	for(var i=0; i<map[0].length; i++)
-	    text += map.collisionData[j][i]+",";
-    }
-    document.getElementById("status").innerHTML += text;
-    // == 1)map[j][i].collisionData=0;
-    // else map[j][i].collisionData=1;
-	
 }

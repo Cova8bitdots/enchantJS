@@ -64,7 +64,7 @@ function initialize(){
     
     for(var i=0; i<Len; i++){
 	/* CHARACTER( x, y, image, frame)*/
-	if(i==0)player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/ColorTile.png'],i%8);
+	if(i==0)player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/chara7.png'],i%8);
 	else if(i==1)player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/chara5.png'],i%8);
 	else player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/ColorTile.png'],i%8);
 	player[i].addEventListener(Event.TOUCH_START,IS_SELECTED);
