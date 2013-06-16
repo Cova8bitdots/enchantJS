@@ -124,14 +124,6 @@ function END_TRAJECTORY(e){
 	this.direction=-1;
     }
     this.opacity=0.8;
-    // var text="Trajectory dx="+this.diff.x+",dy="+this.diff.y+
-    // 	"length="+this.trajectory.length+"   <br>";
-    // for(var i=0; i<this.trajectory.length; i++){
-    // 	text += "(x,y,ex,ey,dist)=("+this.trajectory[i]['x']+","+this.trajectory[i]['y']+
-    // 	    ","+this.trajectory[i]['ex']+","+this.trajectory[i]['ey']+","+
-    // 	    this.trajectory[i]['dist']+")<br>";
-    // 	document.getElementById("data").innerHTML=text;
-    // }
 }
 
 
@@ -142,50 +134,37 @@ function DRAW_TRAJECTORY(e){
     if( (this.index < this.trajectory.length) && 
 	(this.selectedFlag==1) && (this.can_move ==1)){
 	// Moving
+	var dx=0,dy=-1;
 	if( Math.round(Math.abs(this.x - this.trajectory[this.index]['x'])) >
-	    Math.round(Math.abs(this.y - this.trajectory[this.index]['y'])) ){//horizontal moving
-		var dx = this.trajectory[this.index]['x']-this.x <0 ? -1:1;
-	    if(this.trajectory[this.index]['x']-this.x <0 )
-	    {//Move left
+	    Math.round(Math.abs(this.y - this.trajectory[this.index]['y'])) )
+	{//horizontal moving
+	    dx = this.trajectory[this.index]['x']-this.x <0 ? -1:
+		this.trajectory[this.index]['x']-this.x ==0 ? 0:
+		1;
+	    if(map.hitTest(this.x+dx,this.y)  || map.hitTest(this.x+dx+this.width-1,this.y)||
+	       map.hitTest(this.x+dx,this.y+this.height-1) || map.hitTest(this.x+dx+this.width-1,this.y+this.height-1))
+	    {//will be collision
+	    	dx =0;
+	    	this.can_move=0;
+	    }
 		this.x += dx;
-		if( ( Math.round(Math.abs(this.x - this.trajectory[this.index]['x'])) %5 ==0) )
-		{
-		    if( (this.frame<9) || (11<this.frame))this.frame=10;
-		    if(this.frame == 9)this.direction=1;
-		    else if(this.frame==11)this.direction=-1;
-		    this.frame += this.direction;
-		}
-	    }else if (this.trajectory[this.index]['x'] - this.x > 0 ){//Move Right
-		this.x+= dx;
-
-		if( ( Math.round(Math.abs(this.x - this.trajectory[this.index]['x'])) %5 ==0) ){
-		    if( (this.frame<18) || (20<this.frame))this.frame=19;
-		    if(this.frame == 18)this.direction=1;
-		    else if(this.frame==20)this.direction=-1;
-		    this.frame += this.direction;
-		}
-	    }
+	    // update image frame 
+	    if( ( Math.round(Math.abs(this.x - this.trajectory[this.index]['x'])) %5 ==0) )DrawImageFrame(dx,0,this);
 	}else{ //vertical Moving
-	    if(this.trajectory[this.index]['y']-this.y <0 )//Move up
-	    {
-		this.y--;
-		if( ( Math.round(Math.abs(this.y - this.trajectory[this.index]['y'])) %5 ==0) )
-		{
-		    if( (this.frame<27) || (29<this.frame))this.frame=28;
-		    if(this.frame == 27)this.direction=1;
-		    else if(this.frame==29)this.direction=-1;
-		    this.frame += this.direction;
-		}
-		
-	    }else if (this.trajectory[this.index]['y'] - this.y > 0 ){//Move Right
-		this.y++;
-		if( ( Math.round(Math.abs(this.y - this.trajectory[this.index]['y'])) %5 ==0) ){
-		    if( (this.frame<0) || (2<this.frame))this.frame=1;
-		    if(this.frame == 0)this.direction=1;
-		    else if(this.frame==2)this.direction=-1;
-		    this.frame += this.direction;
-		}
+	    dy = this.trajectory[this.index]['y']-this.y <0 ? -1
+		: this.trajectory[this.index]['y']-this.y == 0 ? 0
+		: 1;
+
+	    if(map.hitTest(this.x,this.y+dy) || map.hitTest(this.x+this.width-1,this.y+dy) ||
+	       map.hitTest(this.x,this.y+dy+this.height-1)||map.hitTest(this.x+this.width-1,this.y+dy+this.height-1) )
+	    {//will be collision
+	    	dy =0;
+	    	this.can_move=0;
 	    }
+	    
+	    this.y += dy;
+	    // update image frame 
+	    if( ( Math.round(Math.abs(this.y - this.trajectory[this.index]['y'])) %5 ==0) )DrawImageFrame(0,dy,this);
 	}
 
 	if( ( Math.round(Math.abs(this.x - this.trajectory[this.index]['x'])) <= 1)&& 
@@ -193,38 +172,50 @@ function DRAW_TRAJECTORY(e){
 	  {
 	    this.index++; 
 	  }
-	if(this.index >= this.trajectory.length || CHECK_COLLISION(this) )
+	if(this.index >= this.trajectory.length || CHECK_COLLISION(this) || (this.can_move==0) )
 	{//Object arrived at distination ,thus Moving ended.
 	    this.frame =  this.frame%3==0? this.frame+1
 		:this.frame %3 == 2 ? this.frame-1
-		: this.frame; 
+		:this.frame; 
 	    this.selectedFlag=0;
 	    this.can_move=0;	
 	    this.opacity=1.0;
 	    this.trajectory.length =0;
 	    this.index=0;
 	}
-    }
-    
+    }    
 }
 
 
-function DrawImageFrame(dx,obj){
-    	if( dx <0 )//moving left
-		{
-		    if( (obj.frame<9) || (11<obj.frame))obj.frame=10;
-		    if(obj.frame == 9)obj.direction=1;
-		    else if(obj.frame==11)obj.direction=-1;
-		    obj.frame += obj.direction;
-		}
-    else{//Move Right
+function DrawImageFrame(dx,dy,obj){
+    if( dx <0 && dy==0)//moving left
+    {
+	if( (obj.frame<9) || (11<obj.frame))obj.frame=10;
+	if(obj.frame == 9)obj.direction=1;
+	else if(obj.frame==11)obj.direction=-1;
+	obj.frame += obj.direction;
+    }
+    else if(0<dx && dy ==0)
+    {//Move Right
 	if( (obj.frame<18) || (20<obj.frame))obj.frame=19;
 	if(obj.frame == 18)obj.direction=1;
 	else if(obj.frame==20)obj.direction=-1;
 	obj.frame += obj.direction;
     }
-
-
+    if(dx==0 && dy < 0)//moving up
+    {
+	if( (obj.frame<27) || (29<obj.frame))obj.frame=28;
+	if(obj.frame == 27)obj.direction=1;
+	    else if(obj.frame==29)obj.direction=-1;
+	obj.frame += obj.direction;
+    }
+    else if(dx ==0 && dy>0)//Move down
+    {
+	if( (obj.frame<0) || (2<obj.frame))obj.frame=1;
+	if(obj.frame == 0)obj.direction=1;
+	else if(obj.frame==2)obj.direction=-1;
+	obj.frame += obj.direction;
+    }
 }
 
 
@@ -253,20 +244,23 @@ function CHECK_COLLISION(obj){
 }
 
 
-
-
-
 function DEBUG(){
   document.getElementById("status").innerHTML=
 	"Obj1:("+player[0].x+","+player[0].y+")"+
 	"Obj2:("+player[1].x+","+player[1].y+")"+
 	"Obj3:("+player[2].x+","+player[2].y+")"+"<br>"+
+
+	"Obj1:("+(player[0].x+player[0].width-1)+","+(player[0].y+player[0].height-1)+")"+
+	"Obj2:("+(player[1].x+player[1].width-1)+","+(player[1].y+player[1].height-1)+")"+
+	"Obj3:("+(player[2].x+player[2].width-1)+","+(player[2].y+player[2].height-1)+")"+"<br>"+
+
 	"Tile status: "+map.checkTile(player[0].x,player[0].y)+"  :  "+
 	map.checkTile(player[1].x,player[1].y)+"  :  "+
 	map.checkTile(player[2].x,player[2].y)+" <br>"+
-	"Collision Tile?: "+map.hitTest(player[0].x,player[0].y)+"  :  "+
-	map.hitTest(player[1].x,player[1].y)+"  :  "+
-	map.hitTest(player[2].x,player[2].y)+" <br>"+
+	"Collision Tile?: "+map.hitTest(player[0].x,player[0].y)+" "+map.hitTest(player[0].x+player[0].width-1,player[0].y+player[0].height-1)+" :  "+
+	map.hitTest(player[1].x,player[1].y)+" "+map.hitTest(player[1].x+player[1].width-1,player[1].y+player[1].height-1)+" :  "+
+	map.hitTest(player[2].x,player[2].y)+" "+map.hitTest(player[2].x+player[2].width-1,player[2].y+player[2].height-1)+"<br>"+
+
 	"---------------------------------------------------------<br>"+
 	"frame: "+player[0].frame+"  :  "+player[1].frame+"  :  "+player[2].frame+" <br> "+
 	"selectedFlag: "+player[0].selectedFlag+"  :  "+player[1].selectedFlag+"  :  "+player[2].selectedFlag+" <br> "+

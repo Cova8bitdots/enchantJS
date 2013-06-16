@@ -29,6 +29,7 @@ function preload(){
 function initialize(){
     
     scene = new Scene();
+
     scene.backgroundColor = '#ffffff';
     game.pushScene(scene);
 
@@ -37,9 +38,9 @@ function initialize(){
     var BackGroundMap = [
 		     [1,1,1,1,1,1],
 		     [1,1,0,1,1,1],
+		     [1,1,1,1,0,1],
 		     [1,1,1,1,1,1],
 		     [1,1,0,1,1,1],
-		     [1,1,1,1,1,1],
 		     [1,1,1,1,0,1],
 		     [3,3,3,3,3,3]
     ];
@@ -63,13 +64,14 @@ function initialize(){
     
     for(var i=0; i<Len; i++){
 	/* CHARACTER( x, y, image, frame)*/
-	if(i==0)player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/chara7.png'],i%8);
+	if(i==0)player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/ColorTile.png'],i%8);
 	else if(i==1)player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/chara5.png'],i%8);
 	else player[i] = new CHARACTER((2*i)*32,(2*i)*32,game.assets['./img/ColorTile.png'],i%8);
 	player[i].addEventListener(Event.TOUCH_START,IS_SELECTED);
 	player[i].addEventListener(Event.TOUCH_MOVE,TRACE_TRAJECTORY);
 	player[i].addEventListener(Event.TOUCH_END,END_TRAJECTORY);
 	player[i].addEventListener(Event.ENTER_FRAME,DRAW_TRAJECTORY);
+	
 	
 	//For debug
 	player[i].addEventListener(Event.ENTER_FRAME,DEBUG);
@@ -78,10 +80,11 @@ function initialize(){
  
 	scene.addChild(player[i]);
     }
+
     main();
 }//end of initialize()
    
 function main(){
-   
+
 }
 
